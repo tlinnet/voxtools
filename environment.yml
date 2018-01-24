@@ -1,0 +1,14 @@
+name: voxtools
+channels:
+- defaults
+- conda-forge
+dependencies:
+- python=3.6
+- anaconda
+#- bokeh
+#- matplotlib
+- numpy
+#- pandas
+- openpyxl
+- pip:
+  - PyQt5 ==5.9
