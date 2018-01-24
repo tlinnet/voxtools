@@ -50,7 +50,7 @@ Set PYTHONPATH for local development
 .. code-block:: bash
 
     # In bash, go to developer directory.
-    export PYTHONPATH=$PWD/
+    export PYTHONPATH=$PWD
 
     # Try python from another directory
     cd $HOME
