@@ -25,4 +25,4 @@ REM ------------------------------------------------------
 REM - Possible follow up in cmd
 REM ------------------------------------------------------
 REM cmd.exe /k
-REM Powershell.exe -Command "& {Start-Process PowerShell.exe -ArgumentList '-ExecutionPolicy RemoteSigned -noexit -File ""C:\Users\troels.linnet\WinPython-64bit-3.6.3.0Qt5\scripts\WinPython_PS_Prompt.ps1""'}"
+REM Powershell.exe -Command "& {Start-Process PowerShell.exe -ArgumentList '-ExecutionPolicy RemoteSigned -noexit -File ""P:\Voxmeter_python_tools\WinPython-64bit-3.6.3.0Qt\scripts\WinPython_PS_Prompt.ps1""'}"
