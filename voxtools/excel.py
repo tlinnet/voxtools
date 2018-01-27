@@ -336,7 +336,7 @@ class excel:
 
     def Copy_groups_to_sheets_as_copy(self):
         # Get the list of current sheet names
-        wb_cur_sheets = self.wb.get_sheet_names()
+        wb_cur_sheets = self.wb.sheetnames
         # Collect new target sheetnames
         self.sheet_groups_dict['sheetname_new'] = []
 
@@ -393,7 +393,7 @@ class excel:
 
     def Copy_groups_to_sheets_as_new(self):
         # Get the list of current sheet names
-        wb_cur_sheets = self.wb.get_sheet_names()
+        wb_cur_sheets = self.wb.sheetnames
         # Collect new target sheetnames
         self.sheet_groups_dict['sheetname_new'] = []
 
@@ -576,7 +576,7 @@ class excel:
             if ws.max_row == 1 and ws.max_column == 1:
                 #print(ws.title)
                 std=self.wb[ws.title]
-                self.wb.remove_sheet(std)
+                self.wb.remove(std)
 
     def copy_excel(self):
         filename_src, fileext = os.path.splitext(self.excel_src)
