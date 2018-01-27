@@ -61,6 +61,26 @@ Set PYTHONPATH for local development
     # It needs to have: if __name__ == '__main__':
     python -m voxtools.gui.excel
 
+| For conda environments
+| https://conda.io/docs/user-guide/tasks/manage-environments.html#saving-environment-variables
+
+.. code-block:: bash
+
+    # In bash, go to developer directory.
+    # Make new directories
+    mkdir -p $HOME/anaconda/envs/voxtools/etc/conda/activate.d
+    mkdir -p $HOME/anaconda/envs/voxtools/etc/conda/deactivate.d
+
+    # For activate
+    echo '#!/bin/bash' > $HOME/anaconda/envs/voxtools/etc/conda/activate.d/env_vars.sh
+    echo "export PYTHONPATH='$PWD'" >> $HOME/anaconda/envs/voxtools/etc/conda/activate.d/env_vars.sh
+    cat $HOME/anaconda/envs/voxtools/etc/conda/activate.d/env_vars.sh
+
+    # For deactivate
+    echo '#!/bin/bash' > $HOME/anaconda/envs/voxtools/etc/conda/deactivate.d/env_vars.sh
+    echo "unset PYTHONPATH" >> $HOME/anaconda/envs/voxtools/etc/conda/deactivate.d/env_vars.sh
+    cat $HOME/anaconda/envs/voxtools/etc/conda/deactivate.d/env_vars.sh
+
 
 Update and upload new version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
