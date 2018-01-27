@@ -130,7 +130,7 @@ class excel:
         for sheet_group in self.sheet_groups_dict['sheetname_new']:
             groupname, cell_from, cell_to, sheetname_new, group_questions, group_questions_coord, col_titles, col_widths, col_widths_info = sheet_group
             # Get ws
-            ws = self.wb.get_sheet_by_name(sheetname_new)
+            ws = self.wb[sheetname_new]
 
             # Group row lists
             group_row_range = range(cell_from[1], cell_to[1]+1)
@@ -237,7 +237,7 @@ class excel:
         for i, sheet_group in enumerate(self.sheet_groups_dict['sheetname_new']):
             groupname, cell_from, cell_to, sheetname_new = sheet_group
             # Get ws
-            ws = self.wb.get_sheet_by_name(sheetname_new)
+            ws = self.wb[sheetname_new]
 
             col_titles = []
             col_widths = []
@@ -369,7 +369,7 @@ class excel:
 
                 # Go to the name of the copied sheet and rename
                 target_name = ws.title + " Copy"
-                ws_target = self.wb.get_sheet_by_name(target_name)
+                ws_target = self.wb[target_name]
                 ws_target.title = sheetname_new
 
                 # Delete rows by setting values to None
@@ -575,7 +575,7 @@ class excel:
             # Delete sheet if empty
             if ws.max_row == 1 and ws.max_column == 1:
                 #print(ws.title)
-                std=self.wb.get_sheet_by_name(ws.title)
+                std=self.wb[ws.title]
                 self.wb.remove_sheet(std)
 
     def copy_excel(self):
