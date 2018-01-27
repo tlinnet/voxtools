@@ -44,7 +44,5 @@ class Test_excel(unittest.TestCase):
         #print(excel_src_new)
         self.assertTrue(file_exists)
 
-
-
 if __name__ == '__main__':
     unittest.main()
