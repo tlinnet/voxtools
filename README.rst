@@ -103,6 +103,8 @@ Set PYTHONPATH for local development
 Run test_suite
 ^^^^^^^^^^^^^^
 
+Run single tests
+
 .. code-block:: bash
 
     # Get options
@@ -116,6 +118,13 @@ Run test_suite
     python -m voxtools.test_suite.basic_test TestStringMethods -b -v
     # Run 1 test, from 1 class, from 1 file
     python -m voxtools.test_suite.basic_test TestStringMethods.test_isupper -b -v
+
+Run all tests
+
+.. code-block:: bash
+
+    # From developer directory
+    python -m unittest discover voxtools.test_suite -p "*_test.py" -b -v
 
 Update and upload new version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
