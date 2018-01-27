@@ -13,7 +13,10 @@ import sys, os, datetime, shutil
  
 from PyQt5.QtWidgets import (QListWidget, QApplication)
 from PyQt5.QtCore import Qt
- 
+
+# Import voxtools excel
+from voxtools import excel
+
 class TestListBox(QListWidget):
     def __init__(self, parent=None):
         super(TestListBox, self).__init__(parent)
@@ -49,14 +52,10 @@ class TestListBox(QListWidget):
                     print("Not Excel file! Skipping file: %s" % link_str)
                     continue
                 # If Excel
-                filename_dst = filename_src + "_" +  self.cur_time
-                # New destination
-                dst = filename_dst+fileext
-                # Copy
-                shutil.copy2(link_str, dst)
-
-            #print(links)
-            # self.emit(ui.QtCore.SIGNAL("dropped"), links)
+                # Instantiate the Excel class
+                exl = excel.excel(excel_src=link_str)
+                # Run it
+                exl.run_all()
 
         else:
             event.ignore()
