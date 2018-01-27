@@ -81,6 +81,11 @@ Set PYTHONPATH for local development
     echo "unset PYTHONPATH" >> $HOME/anaconda/envs/voxtools/etc/conda/deactivate.d/env_vars.sh
     cat $HOME/anaconda/envs/voxtools/etc/conda/deactivate.d/env_vars.sh
 
+    # Then start an new terminal, and test
+    source activate voxtools
+    python -c "import sys;print(sys.path)"
+    python -m voxtools.gui.excel
+
 
 Update and upload new version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
