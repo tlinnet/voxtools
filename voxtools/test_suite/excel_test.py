@@ -22,26 +22,26 @@ class Test_excel(unittest.TestCase):
     def test_copy_excel(self):
         # Create file obj
         file_obj = tempfile.NamedTemporaryFile(delete=True)
-        file_name = file_obj.name
+        excel_src = file_obj.name
 
         # Instantiate the Excel class
-        exl = excel.excel(file_name)
+        exl = excel.excel(excel_src)
         # Run the class function
         exl.copy_excel()
 
         # Check that the new file has been created
-        new_file_name = file_name + "_" +  self.cur_time
-        file_exists = os.path.isfile(new_file_name)
+        excel_src_new = excel_src + "_" +  self.cur_time
+        file_exists = os.path.isfile(excel_src_new)
         # Assert this is true
         self.assertTrue(file_exists)
 
         # Instantiate a new Excel class
-        file_name_new = file_name + "_test"
-        exl = excel.excel(file_name, file_name_new)
+        excel_src_new = excel_src + "_test"
+        exl = excel.excel(excel_src, excel_src_new)
         # Run the class function
         exl.copy_excel()
-        file_exists = os.path.isfile(file_name_new)
-        #print(file_name_new)
+        file_exists = os.path.isfile(excel_src_new)
+        #print(excel_src_new)
         self.assertTrue(file_exists)
 
 
