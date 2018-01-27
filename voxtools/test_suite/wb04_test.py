@@ -63,12 +63,27 @@ class Test_wb04(unittest.TestCase):
     def test_Find_sheet_groups(self):
         # Find the Sheet groups
         self.exl.Find_sheet_groups()
-        
+
         # Check that keys are uniq
         keys = self.exl.sheet_groups_dict['Ark1']['keys']
         len_keys = len(keys)
         len_keys_set = len(set(keys))
         self.assertEqual(len_keys, len_keys_set)
+
+    def test_run_all(self):
+        # Find the Sheet groups
+        self.exl.Find_sheet_groups()
+        # Copy groups to sheets
+        self.exl.Copy_groups_to_sheets_as_copy()
+        # Set width of cells
+        self.exl.Format_Column_Width()
+        # Set Page Layout per sheet
+        self.exl.Page_Layout_setup()
+        # Set height of cells
+        self.exl.Format_Column_Height()
+        # Save Workbook
+        self.exl.wb.save(self.excel_dst)
+
 
     def tearDown(self):
         # Delete temporary file
