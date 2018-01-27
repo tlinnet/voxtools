@@ -1,13 +1,16 @@
 REM Calling environment setup
 call "P:\Voxmeter_python_tools\WinPython-64bit-3.6.3.0Qt5\scripts\env_for_icons.bat"
 
-REM #####################################################
-REM # The REM is telling windows it is a comment line
-REM # 2018-01-25 : By Troels Schwarz-Linnet
+REM ################################################################################
+REM # Copyright (C) Troels Schwarz-Linnet - All Rights Reserved
+REM # Written by Troels Schwarz-Linnet <tlinnet@gmail.com>, January 2018
+REM # 
+REM # Unauthorized copying of this file, via any medium is strictly prohibited.
 REM #
-REM #
-REM # The REM is telling windows it is a comment line
-REM #####################################################
+REM # Any use of this code is strictly unauthorized without the written consent
+REM # by the the author. This code is proprietary of the author.
+REM # 
+REM ################################################################################
 
 REM # add PYTHONPATH path
 REM # python -c "import sys;print(sys.path)"
