@@ -336,6 +336,7 @@ class excel:
         wb_cur_sheets = self.wb.sheetnames
         # Collect new target sheetnames
         self.sheet_groups_dict['sheetname_new'] = []
+        sheetname_new_list = []
 
         # Loop through worksheets
         for ws in self.wb:
@@ -352,7 +353,10 @@ class excel:
                 else:
                     sheetname_new = groupname
                 # Replace bad characters. Max 31 characters in Excel.
-                sheetname_new = sheetname_new.replace("/","")[:31]
+                sheetname_new = sheetname_new.replace("/","")[:25]
+                # Make sure sheetname is uniq
+                sheetname_new = self.make_uniq_key(sheetname_new, sheetname_new_list)
+                sheetname_new_list.append(sheetname_new)
 
                 print("Copy sheet:", "'%s'"%sheetname_new, cell_from, cell_to, "'%s'"%key)
                 self.sheet_groups_dict['sheetname_new'].append(self.sheet_groups_dict[ws.title][key] + [sheetname_new])
@@ -456,6 +460,7 @@ class excel:
             # Make key with Sheet title
             sheet_groups_dict[ws.title] = {}
             sheet_groups_dict_ws_title_keys = []
+            sheet_groups_dict_ws_title_keys_uniq = []
 
             # Get the merged cells of sheet, sorted after columns
             merged_cells = sorted(ws.merged_cells)
@@ -466,11 +471,30 @@ class excel:
             # Sort after row number
             merged_cells_split.sort(key=lambda x: x[1])
 
+            # Get all groups with (pct)
+            freq_groups = []
+            for iRow, cCol in enumerate(ws.rows):
+                iRow += 1
+                cCell = ws["B%s"%(iRow)]
+                if cCell.value == None:
+                    continue
+                # Only if fontsize 8, since the title of groups has this
+                if cCell.font.sz == 8:
+                    if cCell.value == "(abs)":
+                        freq_groups.append((cCell.column, cCell.row))
+
+            # Join together
+            freq_merged = freq_groups + merged_cells_split
+            # Sort after row number
+            freq_merged.sort(key=lambda x: x[1])
+
             # Make key before looping over rows
+            key_cur = None
             key_prev = None
+            cCell_val_ascii_prev = None
 
             # Loop
-            for iCol_L, iRow in merged_cells_split:
+            for iCol_L, iRow in freq_merged:
                 # Get the column number from Column Letter
                 iCol = column_index_from_string(iCol_L);
                 # Get the Cell object from string method
@@ -492,30 +516,25 @@ class excel:
 
                             # Convert val to Ascii
                             cCell_val_ascii = cCell_val.encode('ascii', 'ignore').decode("utf-8")
-                            key_cur = self.make_uniq_key(cCell_val_ascii, sheet_groups_dict_ws_title_keys)
+                            if cCell_val_ascii != cCell_val_ascii_prev:
+                                # Update
+                                cCell_val_ascii_prev = cCell_val_ascii
+                                key_cur = self.make_uniq_key(cCell_val_ascii, sheet_groups_dict_ws_title_keys)
 
                             # Set key first time with list
                             if key_prev == None:
-                                key_prev = self.make_uniq_key(cCell_val_ascii, sheet_groups_dict_ws_title_keys)
-                                # Create frequency group
-                                if iRow_store > 3:
-                                    # Generate uniq key
-                                    key_prev_freq = self.make_uniq_key("Frekvens", sheet_groups_dict_ws_title_keys)
-                                    # And store it
-                                    sheet_groups_dict_ws_title_keys.append(key_prev_freq)
-                                    sheet_groups_dict[ws.title][key_prev_freq] = []
-                                    sheet_groups_dict[ws.title][key_prev_freq].append(key_prev_freq)
-                                    sheet_groups_dict[ws.title][key_prev_freq].append(("B", 1))
-                                    sheet_groups_dict[ws.title][key_prev_freq].append(("B", iRow_store-1))
+                                key_prev = key_cur
 
                                 # Create empty list and add info
                                 sheet_groups_dict_ws_title_keys.append(key_prev)
                                 sheet_groups_dict[ws.title][key_prev] = []
                                 sheet_groups_dict[ws.title][key_prev].append(cCell_val_store)
                                 sheet_groups_dict[ws.title][key_prev].append((iCol_L_store, iRow_store))
+
                             # If same key, continue
                             if key_cur == key_prev:
                                 continue
+
                             # If keys are different, store to previous and current
                             elif key_cur != key_prev:
                                 # Add to previous
