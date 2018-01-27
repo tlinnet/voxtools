@@ -21,6 +21,13 @@ Important links
 * Source code: https://github.com/tlinnet/voxtools
 * PyPI package: https://pypi.python.org/pypi/voxtools
 
+How to run the GUI
+------------------
+
+.. code-block:: bash
+
+    python -m voxtools.gui.excel
+
 How to install?
 ---------------
 If using conda, these steps will install an environment
