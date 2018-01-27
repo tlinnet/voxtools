@@ -14,10 +14,6 @@ SKIP_THESE = [
 ]
 Col_width_max = 177 # 100+50+20+5+2
 
-# Set global DEBUG flag to save time
-#DEBUG = True
-DEBUG = False
-
 def calc_text_width(cCell):
     value = cCell.value
     if value is None:
@@ -79,10 +75,11 @@ def calc_text_width(cCell):
         return str_length
 
 class excel:
-    def __init__(self, excel_src=None, excel_dst=None):
+    def __init__(self, excel_src=None, excel_dst=None, debug_sheet=False):
         # Store 
         self.excel_src = excel_src
         self.excel_dst = excel_dst
+        self.debug_sheet = debug_sheet
 
         # Make current time
         #self.cur_time = datetime.datetime.now().strftime("%Y-%m-%d-Week%W-H%H-M%M-S%S")
@@ -90,14 +87,14 @@ class excel:
 
 
     def run_all(self):
-        # Copy Excel workbook and open
+        # Copy Excel workbook
         self.copy_excel()
         # Print all objects of workbook
         #[print(i) for i in dir(self.wb)]
         #print(self.wb.active, self.wb.properties)
 
         # Open workbook
-        self.wb = load_workbook(self.excel_dst)
+        self.load_wb()
 
         # Delete empty sheets
         self.delete_empty_sheets()
@@ -327,7 +324,7 @@ class excel:
             ws.column_dimensions["A"].width = col_width_A
             # Collect
             self.sheet_groups_dict['sheetname_new'][i].append((Col_width_max, col_widths_sum, col_width_A))
-            if DEBUG:
+            if self.debug_sheet:
                 print("Col width A: ", "'%s'"%sheetname_new, (Col_width_max, col_widths_sum, col_width_A_calc))
 
         # Print last info
@@ -343,7 +340,7 @@ class excel:
         # Loop through worksheets
         for ws in self.wb:
             keys = self.sheet_groups_dict[ws.title]['keys']
-            if DEBUG:
+            if self.debug_sheet:
                 #keys = keys[:1]
                 keys = [keys[0]]+[keys[4]]
             for key in keys:
@@ -400,7 +397,7 @@ class excel:
         # Loop through worksheets
         for ws in self.wb:
             keys = self.sheet_groups_dict[ws.title]['keys']
-            if DEBUG:
+            if self.debug_sheet:
                 #keys = keys[:1]
                 keys = [keys[0]]+[keys[4]]
             for key in keys:
@@ -495,14 +492,16 @@ class excel:
 
                             # Convert val to Ascii
                             cCell_val_ascii = cCell_val.encode('ascii', 'ignore').decode("utf-8")
-                            key_cur = cCell_val_ascii
+                            key_cur = self.make_uniq_key(cCell_val_ascii, sheet_groups_dict_ws_title_keys)
 
                             # Set key first time with list
                             if key_prev == None:
-                                key_prev = cCell_val_ascii
+                                key_prev = self.make_uniq_key(cCell_val_ascii, sheet_groups_dict_ws_title_keys)
                                 # Create frequency group
                                 if iRow_store > 3:
-                                    key_prev_freq = "Frekvens"
+                                    # Generate uniq key
+                                    key_prev_freq = self.make_uniq_key("Frekvens", sheet_groups_dict_ws_title_keys)
+                                    # And store it
                                     sheet_groups_dict_ws_title_keys.append(key_prev_freq)
                                     sheet_groups_dict[ws.title][key_prev_freq] = []
                                     sheet_groups_dict[ws.title][key_prev_freq].append(key_prev_freq)
@@ -541,6 +540,19 @@ class excel:
         # store
         self.sheet_groups_dict = sheet_groups_dict
 
+    def make_uniq_key(self, key=None, keylist=None):
+        # If key not in list
+        key_in_list = key in keylist
+        if not key_in_list:
+            return key
+        else:
+            i = 2
+            while key_in_list:
+                newkey = key + "_%i"%i
+                key_in_list = newkey in keylist
+                i += 1
+            return newkey
+
     def Format_Cells_number_format(self, fontsize=None):
         # Loop through worksheets
         for ws in self.wb:
@@ -577,6 +589,10 @@ class excel:
                 #print(ws.title)
                 std=self.wb[ws.title]
                 self.wb.remove(std)
+
+    def load_wb(self):
+        # Open workbook
+        self.wb = load_workbook(self.excel_dst)
 
     def copy_excel(self):
         filename_src, fileext = os.path.splitext(self.excel_src)
