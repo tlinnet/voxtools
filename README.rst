@@ -100,6 +100,23 @@ Set PYTHONPATH for local development
     python -m voxtools.gui.excel
 
 
+Run test_suite
+^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+    # Get options
+    python -m voxtools.test_suite.basic -h
+
+    # Run 1 file with test
+    python -m voxtools.test_suite.basic -b
+    python -m voxtools.test_suite.basic -b -v
+
+    # Run 1 class from 1 file
+    python -m voxtools.test_suite.basic TestStringMethods -b -v
+    # Run 1 test, from 1 class, from 1 file
+    python -m voxtools.test_suite.basic TestStringMethods.test_isupper -b -v
+
 Update and upload new version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
