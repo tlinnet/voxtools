@@ -108,16 +108,16 @@ Run single tests
 .. code-block:: bash
 
     # Get options
-    python -m voxtools.test_suite.basic_test -h
+    python -m voxtools.test_suite.excel_test -h
 
     # Run 1 file with test
-    python -m voxtools.test_suite.basic_test -b
-    python -m voxtools.test_suite.basic_test -b -v
+    python -m voxtools.test_suite.excel_test -b
+    python -m voxtools.test_suite.excel_test -b -v
 
     # Run 1 class from 1 file
-    python -m voxtools.test_suite.basic_test TestStringMethods -b -v
+    python -m voxtools.test_suite.excel_test Test_excel -b -v
     # Run 1 test, from 1 class, from 1 file
-    python -m voxtools.test_suite.basic_test TestStringMethods.test_isupper -b -v
+    python -m voxtools.test_suite.excel_test Test_excel.test_copy_excel -b -v
 
 Run all tests
 
