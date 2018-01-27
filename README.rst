@@ -125,6 +125,8 @@ Run single tests
     python -m voxtools.test_suite.excel_test Test_excel -b -v
     # Run 1 test, from 1 class, from 1 file
     python -m voxtools.test_suite.excel_test Test_excel.test_copy_excel -b -v
+    # Another example
+    python -m voxtools.test_suite.wb04_test Test_wb04.test_make_uniq_key
 
 Run all tests
 
