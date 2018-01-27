@@ -13,6 +13,7 @@ import sys, os, os.path, datetime, shutil
  
 from PyQt5.QtWidgets import (QApplication, QListWidget, QMessageBox)
 from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QIcon
 
 # Import voxtools excel
 from voxtools import excel
@@ -23,14 +24,18 @@ DEBUG = False
 gui_dir = os.path.dirname(__file__)
 voxmeter_logo = os.path.join(gui_dir, 'icons', 'voxmeter_logo.png')
 voxmeter_excel_logo = os.path.join(gui_dir, 'icons', 'voxmeter_excel_logo2.png')
-
+WindowIcon = os.path.join(gui_dir, 'icons', 'WindowIcon_winICO.ico')
 
 class TestListBox(QListWidget):
     def __init__(self, parent=None):
         super(TestListBox, self).__init__(parent)
         self.setAcceptDrops(True)
 
+        # Title
         self.setWindowTitle('Voxmeter - Prepare Excel for report')
+        # Icon for taskbar
+        self.setWindowIcon(QIcon(WindowIcon))
+        # Size and position
         w = 300; h=600
         self.resize(w, h)
         self.move(0, 0)
@@ -41,6 +46,7 @@ class TestListBox(QListWidget):
                     background-position: center;
                     background-repeat: no-repeat;
                     }"""%voxmeter_excel_logo)
+
 
     # http://pyqt.sourceforge.net/Docs/PyQt5/api/QtGui/qdragenterevent.html
     def dragEnterEvent(self, event):
