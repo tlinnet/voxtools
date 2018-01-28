@@ -53,6 +53,106 @@ class text:
         # Now classify all sentences
         self.do_classify_sentences()
 
+        # Now write to worksheet
+        self.write_results()
+
+        # Save Workbook
+        self.wb.save(self.excel_dst)
+
+
+    def write_results(self):
+        # Loop over sentences
+        sent_irows, sentences = self.sent_dat
+        for i, sentence in enumerate(sentences):
+            # Extract and unpack
+            sent_irow = sent_irows[i]
+            iRow, iCol = sent_irow
+            # Extract and unpack
+            sent_classification = self.sent_classifications[iRow-1]
+            classi_sent, classi_class = sent_classification
+            # Sanity check
+            if sentence != classi_sent:
+                print("Oh no!!! Error! %s != %s" %(sentence, classi_sent) )
+                continue
+
+            # Get the cell
+            cCell = self.ws['%s%i'%(self.index_class_L, iRow+1)]
+            # Store the classification
+            cCell.value = classi_class
+
+        # Loop over train
+        train_irows, train_sentences = self.train_dat
+        correct_train = []
+        for i, sentence_pair in enumerate(train_sentences):
+            sentence, classi_train = sentence_pair
+            # Extract and unpack
+            train_irow = train_irows[i]
+            iRow, iCol_1, iCol_2 = train_irow
+            # Extract and unpack
+            sent_classification = self.sent_classifications[iRow-1]
+            classi_sent, classi_class = sent_classification
+            # Sanity check
+            if sentence != classi_sent:
+                print("Oh no!!! Error! %s != %s" %(sentence, classi_sent) )
+                continue
+            # Check
+            if classi_train == classi_class:
+                equal = 1
+            else:
+                equal = 0
+            # Add
+            correct_train.append(equal)
+            # Get the cell
+            cCell = self.ws['%s%i'%(self.index_correct_train_L, iRow+1)]
+            # Store the classification
+            cCell.value = equal
+
+        # Write results
+        self.ws['J1'].value = "correct_train"
+        self.ws['J2'].value = "sum"
+        self.ws['K2'].value = sum(correct_train)
+        self.ws['J3'].value = "total"
+        self.ws['K3'].value = len(correct_train)
+        self.ws['J4'].value = "pct"
+        self.ws['K4'].value = float("%0.2f"%( sum(correct_train)/len(correct_train) ))
+
+        # Loop over test
+        correct_test = []
+        if self.has_test:
+            test_irows, test_sentences = self.test_dat
+            for i, sentence_pair in enumerate(test_sentences):
+                sentence, classi_test = sentence_pair
+                # Extract and unpack
+                test_irow = test_irows[i]
+                iRow, iCol_1, iCol_2 = test_irow
+                # Extract and unpack
+                sent_classification = self.sent_classifications[iRow-1]
+                classi_sent, classi_class = sent_classification
+                # Sanity check
+                if sentence != classi_sent:
+                    print("Oh no!!! Error! %s != %s" %(sentence, classi_sent) )
+                    continue
+                # Check
+                if classi_test == classi_class:
+                    equal = 1
+                else:
+                    equal = 0
+                # Add
+                correct_test.append(equal)
+                # Get the cell
+                cCell = self.ws['%s%i'%(self.index_correct_test_L, iRow+1)]
+                # Store the classification
+                cCell.value = equal
+
+            # Write results
+            self.ws['J7'].value = "correct_test"
+            self.ws['J8'].value = "sum"
+            self.ws['K8'].value = sum(correct_test)
+            self.ws['J9'].value = "total"
+            self.ws['K9'].value = len(correct_test)
+            self.ws['J10'].value = "pct"
+            self.ws['K10'].value = float("%0.2f"%( sum(correct_test)/len(correct_test) ))
+
 
     def do_classify_sentences(self):
         sentences = self.sent_dat[1]
@@ -73,22 +173,26 @@ class text:
         # Now we’ll create a Naive Bayes classifier, passing the training data into the constructor.
         self.cl = NaiveBayesClassifier(train)
 
+        # Score on own train
+        self.accuracy_train = self.cl.accuracy(train)
+        print("After training %i sentences, the accuracy on %i train sentences is %0.2f"% (len(train), len(train), self.accuracy_train) )
+
         # If we have test data, we can score the classifier
         if self.has_test:
             test = self.test_dat[1]
-            self.accuracy = self.cl.accuracy(test)
-            print("After training %i sentences, the accuracy is %0.2f"% (len(train), self.accuracy) )
+            self.accuracy_test = self.cl.accuracy(test)
+            print("After training %i sentences, the accuracy on %i test sentences is %0.2f"% (len(train), len(test), self.accuracy_test) )
 
     def read_data(self):
         # Use the first sheet
         ws_name = self.wb.sheetnames[0]
-        ws = self.wb[ws_name]
+        self.ws = self.wb[ws_name]
         
         # Get row 1
         self.header_vals = []
-        for iCol in range(1, ws.max_column):
+        for iCol in range(1, self.ws.max_column):
             iCol_L = get_column_letter(iCol)
-            cCell = ws['%s1'%(iCol_L)]
+            cCell = self.ws['%s1'%(iCol_L)]
             self.header_vals.append(cCell.value)
         # Check for header
         if 'train' in self.header_vals:
@@ -96,36 +200,62 @@ class text:
             self.iRow_skip = 1
         else:
             self.has_header = False
-            #self.header_vals = ['sentences', 'train', 'classify', 'test', 'correct_train', 'correct_test']
-            self.header_vals = ['sentences', 'train', 'classify']
+            self.header_vals = ['sentences', 'train', 'classify', 'test', 'correct_train', 'correct_test']
             self.iRow_skip = 0
 
         # Get the index of columns
-        index_sent = self.header_vals.index('sentences')
-        index_train = self.header_vals.index('train')
-        index_class = self.header_vals.index('classify')
-
-        # Collect all sentences
-        self.sent_dat = self.collect_column_data(ws, index_sent)
-
-        # Collect paired values of sentences and train
-        self.train_dat = self.collect_column_data(ws, index_sent, index_train)
-
-        # If test is available
-        if 'test' in self.header_vals:
-            self.has_test = True
-            index_test = self.header_vals.index('test')
-            self.test_dat = self.collect_column_data(ws, index_sent, index_test)
+        if 'sentences' in self.header_vals:
+            self.index_sent = self.header_vals.index('sentences')
         else:
+            self.index_sent = 0
+
+        if 'train' in self.header_vals:
+            self.index_train = self.header_vals.index('train')
+        else:
+            self.index_train = 1
+
+        if 'classify' in self.header_vals:
+            self.index_class = self.header_vals.index('classify')
+        else:
+            self.index_class = 2
+        self.index_class_L = get_column_letter(self.index_class+1)
+
+        if 'test' in self.header_vals:
+            self.index_test = self.header_vals.index('test')
+            self.has_test = True
+        else:
+            self.index_test = 3
             self.has_test = False
 
+        if 'correct_train' in self.header_vals:
+            self.index_correct_train = self.header_vals.index('correct_train')
+        else:
+            self.index_correct_train
+        self.index_correct_train_L = get_column_letter(self.index_correct_train+1)
 
-    def collect_column_data(self, ws, col_i_1=1, col_i_2=None):
+        if 'correct_test' in self.header_vals:
+            self.index_correct_test = self.header_vals.index('correct_test')
+        else:
+            self.index_correct_test
+        self.index_correct_test_L = get_column_letter(self.index_correct_test+1)
+
+        # Collect all sentences
+        self.sent_dat = self.collect_column_data(self.index_sent)
+
+        # Collect paired values of sentences and train
+        self.train_dat = self.collect_column_data(self.index_sent, self.index_train)
+
+        # If test is available
+        if self.has_test:
+            self.test_dat = self.collect_column_data(self.index_sent, self.index_test)
+
+
+    def collect_column_data(self, col_i_1=1, col_i_2=None):
         # Loop over rows
         iRow_nrs = []
         iRow_pair_vals = []
         
-        for iRow, cCol in enumerate(ws.rows):
+        for iRow, cCol in enumerate(self.ws.rows):
             # Possible skip
             if iRow < self.iRow_skip:
                 continue
