@@ -121,6 +121,9 @@ Run single tests
     python -m voxtools.test_suite.textblob_test
     python -m voxtools.test_suite.kodning01_test
 
+    # With textblob, Run 1 test, from 1 class, from 1 file
+    python -m voxtools.test_suite.textblob_test Test_excel.test_copy_excel
+
 Run all tests
 
 .. code-block:: bash
