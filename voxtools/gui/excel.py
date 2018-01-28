@@ -22,8 +22,7 @@ DEBUG = False
 
 # Get the gui directory
 gui_dir = os.path.dirname(__file__)
-voxmeter_logo = os.path.join(gui_dir, 'icons', 'voxmeter_logo.png')
-voxmeter_excel_logo = os.path.join(gui_dir, 'icons', 'voxmeter_excel_logo2.png')
+gui_logo = os.path.join(gui_dir, 'icons', 'gui_logo.png')
 WindowIcon = os.path.join(gui_dir, 'icons', 'WindowIcon_winICO.ico')
 
 class TestListBox(QListWidget):
@@ -32,7 +31,7 @@ class TestListBox(QListWidget):
         self.setAcceptDrops(True)
 
         # Title
-        self.setWindowTitle('Voxmeter - Prepare Excel for report')
+        self.setWindowTitle('Make Excel report')
         # Icon for taskbar
         self.setWindowIcon(QIcon(WindowIcon))
         # Size and position
@@ -45,7 +44,7 @@ class TestListBox(QListWidget):
                     background-image: url(%s);
                     background-position: center;
                     background-repeat: no-repeat;
-                    }"""%voxmeter_excel_logo)
+                    }"""%gui_logo)
 
 
     # http://pyqt.sourceforge.net/Docs/PyQt5/api/QtGui/qdragenterevent.html
