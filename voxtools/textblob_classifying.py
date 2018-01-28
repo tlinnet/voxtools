@@ -8,7 +8,7 @@
 # by the the author. This code is proprietary of the author.
 # 
 ################################################################################
-import shutil, datetime, os, copy, operator, math
+import shutil, datetime, os, os.path, sys
 
 from openpyxl import load_workbook
 from openpyxl.utils import coordinate_from_string, column_index_from_string, get_column_letter
@@ -296,7 +296,7 @@ class text:
 
     def load_wb(self):
         # Open workbook
-        self.wb = load_workbook(self.excel_dst)
+        self.wb = load_workbook(self.excel_dst, data_only=True)
 
     def copy_excel(self):
         filename_src, fileext = os.path.splitext(self.excel_src)
@@ -313,7 +313,12 @@ class text:
                     version += 1
                     filename_dst = filename_split[0] + self.cur_time + "_%03d"%(version)
             
+            # Create the file
             self.excel_dst = filename_dst+fileext
 
-        # Copy
-        shutil.copy2(self.excel_src, self.excel_dst)
+        # Copy, but do not overwrite !
+        if os.path.isfile(self.excel_dst):
+            print("File %s does already exists! Exiting!"%(self.excel_dst))
+            sys.exit()
+        else:
+            shutil.copy2(self.excel_src, self.excel_dst)
