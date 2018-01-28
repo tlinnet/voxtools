@@ -190,7 +190,7 @@ class text:
         
         # Get row 1
         self.header_vals = []
-        for iCol in range(1, self.ws.max_column):
+        for iCol in range(1, self.ws.max_column+1):
             iCol_L = get_column_letter(iCol)
             cCell = self.ws['%s1'%(iCol_L)]
             self.header_vals.append(cCell.value)
@@ -230,13 +230,13 @@ class text:
         if 'correct_train' in self.header_vals:
             self.index_correct_train = self.header_vals.index('correct_train')
         else:
-            self.index_correct_train
+            self.index_correct_train = 4
         self.index_correct_train_L = get_column_letter(self.index_correct_train+1)
 
         if 'correct_test' in self.header_vals:
             self.index_correct_test = self.header_vals.index('correct_test')
         else:
-            self.index_correct_test
+            self.index_correct_test = 5
         self.index_correct_test_L = get_column_letter(self.index_correct_test+1)
 
         # Collect all sentences
