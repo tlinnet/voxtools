@@ -2,18 +2,12 @@
 voxtools 
 ========
 
+How to run the GUI
+
 .. code-block:: bash
 
-    ################################################################################
-    # Copyright (C) Troels Schwarz-Linnet - All Rights Reserved
-    # Written by Troels Schwarz-Linnet <tlinnet@gmail.com>, January 2018
-    # 
-    # Unauthorized copying of this file, via any medium is strictly prohibited.
-    #
-    # Any use of this code is strictly unauthorized without the written consent
-    # by the the author. This code is proprietary of the author.
-    # 
-    ################################################################################
+    python -m voxtools.gui.excel
+
 
 Important links
 ---------------
@@ -21,12 +15,6 @@ Important links
 * Source code: https://github.com/tlinnet/voxtools
 * PyPI package: https://pypi.python.org/pypi/voxtools
 
-How to run the GUI
-------------------
-
-.. code-block:: bash
-
-    python -m voxtools.gui.excel
 
 How to install?
 ---------------
