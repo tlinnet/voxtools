@@ -119,6 +119,7 @@ Run single tests
 
     # With textblob, Run 1 file with test
     python -m voxtools.test_suite.textblob_test
+    python -m voxtools.test_suite.kodning01_test
 
 Run all tests
 
