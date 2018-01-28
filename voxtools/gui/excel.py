@@ -9,7 +9,7 @@
 # 
 ################################################################################
 
-import sys, os, os.path, datetime, shutil
+import sys, os.path
  
 from PyQt5.QtWidgets import (QApplication, QListWidget, QMessageBox)
 from PyQt5.QtCore import Qt, QTimer

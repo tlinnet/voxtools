@@ -40,7 +40,7 @@ class Test_kodning01(unittest.TestCase):
     def tearDown(self):
         # Delete temporary file
         print("Deleting : %s"%self.excel_dst)
-        #os.remove(self.excel_dst)
+        os.remove(self.excel_dst)
 
 
 if __name__ == '__main__':

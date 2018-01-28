@@ -8,7 +8,7 @@
 # by the the author. This code is proprietary of the author.
 # 
 ################################################################################
-import shutil, datetime, os, copy, operator, math
+import shutil, datetime, os.path, copy, operator, math
 
 from openpyxl import load_workbook
 from openpyxl.utils import coordinate_from_string, column_index_from_string, get_column_letter
