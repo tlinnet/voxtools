@@ -9,7 +9,7 @@
 # 
 ################################################################################
 
-import datetime, os.path, tempfile, unittest
+import datetime, os, os.path, tempfile, unittest
 
 # Import voxtools excel
 from voxtools import excel
@@ -34,6 +34,8 @@ class Test_excel(unittest.TestCase):
         file_exists = os.path.isfile(excel_src_new)
         # Assert this is true
         self.assertTrue(file_exists)
+        # Delete 
+        os.remove(excel_src_new)
 
         # Instantiate a new Excel class
         excel_src_new = excel_src + "_test"
@@ -43,6 +45,9 @@ class Test_excel(unittest.TestCase):
         file_exists = os.path.isfile(excel_src_new)
         #print(excel_src_new)
         self.assertTrue(file_exists)
+        # Delete
+        os.remove(excel_src_new)
+
 
 if __name__ == '__main__':
     unittest.main()
