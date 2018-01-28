@@ -11,7 +11,7 @@
 
 import datetime, os, os.path, tempfile, unittest
 
-# Import voxtools excel
+# Import voxtools textblob_classifying
 from voxtools import textblob_classifying
 
 class Test_excel(unittest.TestCase):
@@ -46,7 +46,6 @@ class Test_excel(unittest.TestCase):
         self.assertTrue(file_exists)
         # Delete previous
         os.remove(excel_src_new)
-
 
         # Instantiate a new Excel class, and reuse name
         excel_src_new_update_2 = excel_src_new + "_003"
