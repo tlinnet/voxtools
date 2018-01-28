@@ -80,9 +80,16 @@ class TestListBox(QListWidget):
                 # If Excel
                 # Instantiate the Excel class
                 if not DEBUG:
-                    exl = excel.excel(excel_src=link_str)
-                    # Run it
-                    exl.run_all()
+                    if "kodning" in link_str.lower():
+                        from voxtools import textblob_classifying
+                        tcl = textblob_classifying.text(excel_src=link_str)
+                        # Run it
+                        tcl.run_all()
+
+                    else:
+                        exl = excel.excel(excel_src=link_str)
+                        # Run it
+                        exl.run_all()
 
             # Show dialog
             self.ok_dialog(timeout=3, text="All Excel files has been converted!")
