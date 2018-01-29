@@ -1,16 +1,16 @@
 ################################################################################
 # Copyright (C) Troels Schwarz-Linnet - All Rights Reserved
 # Written by Troels Schwarz-Linnet <tlinnet@gmail.com>, January 2018
-# 
+#
 # Unauthorized copying of this file, via any medium is strictly prohibited.
 #
 # Any use of this code is strictly unauthorized without the written consent
 # by the the author. This code is proprietary of the author.
-# 
+#
 ################################################################################
 
 import sys, os.path
- 
+
 from PyQt5.QtWidgets import (QApplication, QListWidget, QMessageBox)
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QIcon
@@ -22,8 +22,8 @@ DEBUG = False
 
 # Get the gui directory
 gui_dir = os.path.dirname(__file__)
-gui_logo = os.path.join(gui_dir, 'icons', 'gui_logo.png')
-WindowIcon = os.path.join(gui_dir, 'icons', 'WindowIcon_winICO.ico')
+gui_logo = os.path.join(gui_dir, 'icons', 'gui_logo.png').replace('\\', '/')
+WindowIcon = os.path.join(gui_dir, 'icons', 'WindowIcon_winICO.ico').replace('\\', '/')
 
 class TestListBox(QListWidget):
     def __init__(self, parent=None):
@@ -148,7 +148,7 @@ class TimerMessageBox(QMessageBox):
         event.accept()
 
 if __name__ == '__main__':
- 
+
     app = QApplication(sys.argv)
     ex = TestListBox()
     ex.show()
