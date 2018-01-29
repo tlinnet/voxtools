@@ -8,9 +8,9 @@ dependencies:
 #- bokeh
 #- matplotlib
 - numpy
-- openpyxl
 - scikit-learn
 - pandas
 - textblob
 - pip:
   - PyQt5==5.9
+  - openpyxl==2.5.0

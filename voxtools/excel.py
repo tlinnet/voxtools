@@ -8,7 +8,8 @@
 # by the the author. This code is proprietary of the author.
 # 
 ################################################################################
-import shutil, datetime, os.path, copy, operator, math
+import shutil, datetime, os.path, copy, operator, math, sys
+from distutils.version import StrictVersion
 
 from openpyxl import load_workbook
 from openpyxl.utils import coordinate_from_string, column_index_from_string, get_column_letter
@@ -16,7 +17,11 @@ from openpyxl.utils import coordinate_from_string, column_index_from_string, get
 from openpyxl.styles import Font, PatternFill, Border
 
 # Print version
-#from openpyxl import __version__; print(__version__)
+from openpyxl import __version__
+test_version = StrictVersion(__version__) < StrictVersion("2.5.0")
+if test_version:
+    print("You need to have openpyxl version 2.5.0. You have %s"%__version__)
+    sys.exit()
 
 # Set standards
 SKIP_THESE = [
@@ -476,8 +481,10 @@ class excel:
             merged_cells = sorted(ws.merged_cells)
             # Split up
             merged_cells_split = []
-            for cell in merged_cells:
-                merged_cells_split.append(coordinate_from_string(cell))
+            for cell_range in merged_cells:
+                coord_split = cell_range.coord.split(":")
+                #print(ws[coord_split[0]].value)
+                merged_cells_split.append(coordinate_from_string(coord_split[0]))
             # Sort after row number
             merged_cells_split.sort(key=lambda x: x[1])
 
