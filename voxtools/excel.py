@@ -133,11 +133,55 @@ class excel:
         # Set height of cells
         self.Format_Column_Height()
 
+        # Delete rows
+        #self.Worksheet_delete_rows()
+
         # Save Workbook
         self.wb.save(self.excel_dst)
 
+        print("Done with %s"%self.excel_dst)
+
+    def Worksheet_delete_rows(self):
+        for ws in self.wb:
+            # Loop over rows
+            freq_groups = []
+            cont_while = True
+            while cont_while:
+                iRow_prev = None
+                delete_start = None
+                delete_end = None
+                for iRow, cCol in enumerate(ws.rows):
+                    if ws.row_dimensions[iRow].height == 0.1:
+                        # Update initial
+                        #print(ws.title, iRow, iRow_prev, ws.max_row)
+                        if iRow_prev == None:
+                            iRow_prev = iRow
+                            delete_start = iRow
+                        # If they are equal in the start
+                        elif iRow == iRow_prev:
+                            continue
+                        # If reached the end
+                        elif iRow == (ws.max_row - 1):
+                            delete_end = iRow
+                        # If the difference is expected 1, then update
+                        elif iRow - iRow_prev == 1:
+                            iRow_prev = iRow
+                            delete_end = iRow
+                        elif iRow - iRow_prev > 1:
+                            delete_end = iRow_prev
+                        #print(t)
+                if delete_start != None and delete_end != None:
+                    cont_while = True
+                    amount = delete_end-delete_start
+                    #print(ws.title, delete_start, amount)
+                    #ws.delete_rows(delete_start, amount)
+                    ws.delete_rows(delete_start)
+                else:
+                    cont_while = False
+                #print()
+                #print(ws.title, delete_start, delete_end, cont_while)
+
     def Format_Column_Height(self):
-        print()
         # Loop through
         for sheet_group in self.sheet_groups_dict['sheetname_new']:
             groupname, cell_from, cell_to, sheetname_new, group_questions, group_questions_coord, col_titles, col_widths, col_widths_info = sheet_group
