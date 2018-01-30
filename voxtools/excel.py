@@ -22,7 +22,7 @@ from openpyxl.utils import coordinate_from_string, column_index_from_string, get
 #from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font
 from openpyxl.styles import Font, PatternFill, Border
 
-# Print version
+# Check version
 from openpyxl import __version__
 test_version = StrictVersion(__version__) < StrictVersion("2.5.0")
 if test_version:

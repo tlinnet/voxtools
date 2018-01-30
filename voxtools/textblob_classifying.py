@@ -15,14 +15,19 @@
 # 
 ################################################################################
 import shutil, datetime, os, os.path, sys
+from distutils.version import StrictVersion
 
 from openpyxl import load_workbook
 from openpyxl.utils import coordinate_from_string, column_index_from_string, get_column_letter
 #from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font
 from openpyxl.styles import Font, PatternFill, Border
 
-# Print version
-#from openpyxl import __version__; print(__version__)
+# Check version
+from openpyxl import __version__
+test_version = StrictVersion(__version__) < StrictVersion("2.5.0")
+if test_version:
+    print("You need to have openpyxl version 2.5.0. You have %s"%__version__)
+    sys.exit()
 
 from textblob.classifiers import NaiveBayesClassifier
 
