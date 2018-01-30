@@ -111,6 +111,11 @@ Run single tests
     # With textblob, Run 1 test, from 1 class, from 1 file
     python -m voxtools.test_suite.textblob_test Test_excel.test_copy_excel
 
+    # With sklearn, Run 1 file with test
+    python -m voxtools.test_suite.sklearn_test
+    python -m voxtools.test_suite.multikodning01_test
+
+
 Run all tests
 
 .. code-block:: bash
