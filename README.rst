@@ -9,21 +9,8 @@ How to run the GUI
     python -m voxtools.gui.excel
 
 
-Important links
----------------
-
-* Source code: https://github.com/tlinnet/voxtools
-* PyPI package: https://pypi.python.org/pypi/voxtools
-
-
 How to install?
 ---------------
-If using conda, these steps will install an environment
-
-.. code-block:: bash
-
-   # With pip from https://pypi.python.org/pypi/voxtools
-   pip install voxtools
 
 Developer install for local conda environment:
 
@@ -130,30 +117,3 @@ Run all tests
 
     # From developer directory
     python -m unittest discover voxtools.test_suite -p "*_test.py" -b -v
-
-Update and upload new version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* Guide for upload: http://peterdowns.com/posts/first-time-with-pypi.html
-* Updated info: https://packaging.python.org/guides/migrating-to-pypi-org/#uploading
-* PyPI test account: http://testpypi.python.org/pypi?%3Aaction=register_form 
-* PyPI Live account: http://pypi.python.org/pypi?%3Aaction=register_form
-
-.. code-block:: bash
-
-   # Modify version in: voxtools/__init__.py
-   
-   # Create tag
-   VERS=`python -c "from voxtools import __version__; print(__version__)"`
-   # Adds a tag so that we can put this on PyPI
-   git tag $VERS -m ""
-   git push --tags origin master
-   
-   # Upload your package to PyPI Test
-   python setup.py sdist upload -r pypitest
-   open https://testpypi.python.org/pypi/voxtools
-   
-   # Upload to PyPI Live
-   # Once you've successfully uploaded to PyPI Test, perform the same steps but point to the live PyPI server instead.
-   python setup.py sdist upload -r pypi
-   open https://pypi.python.org/pypi/voxtools
