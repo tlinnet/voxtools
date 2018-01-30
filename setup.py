@@ -44,11 +44,10 @@ setup(
     url='https://github.com/tlinnet/voxtools',
     download_url='https://github.com/tlinnet/voxtools/archive/%s.tar.gz'%__version__,
     author='Troels Schwarz-Linnet',
-    author_email='tlinnet@gmail.com',
-    license='Apache Software License',
+    author_email='tsl@voxmeter.dk',
+    license='Copyright (C) Voxmeter A/S - All Rights Reserved',
     classifiers=[
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 3.6',
         'Topic :: Scientific/Engineering',
         'Operating System :: MacOS :: MacOS X',
