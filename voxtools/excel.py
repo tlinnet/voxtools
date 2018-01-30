@@ -1,11 +1,17 @@
 ################################################################################
-# Copyright (C) Troels Schwarz-Linnet - All Rights Reserved
-# Written by Troels Schwarz-Linnet <tlinnet@gmail.com>, January 2018
+# Copyright (C) Voxmeter A/S - All Rights Reserved
+#
+# Voxmeter A/S
+# Borgergade 6, 4.
+# 1300 Copenhagen K
+# Denmark
+#
+# Written by Troels Schwarz-Linnet <tsl@voxmeter.dk>, 2018
 # 
 # Unauthorized copying of this file, via any medium is strictly prohibited.
 #
 # Any use of this code is strictly unauthorized without the written consent
-# by the the author. This code is proprietary of the author.
+# by Voxmeter A/S. This code is proprietary of Voxmeter A/S.
 # 
 ################################################################################
 import shutil, datetime, os.path, copy, operator, math, sys

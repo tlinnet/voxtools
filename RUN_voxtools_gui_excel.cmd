@@ -2,13 +2,19 @@ REM Calling environment setup
 call "P:\Voxmeter_python_tools\WinPython-64bit-3.6.3.0Qt5\scripts\env_for_icons.bat"
 
 REM ################################################################################
-REM # Copyright (C) Troels Schwarz-Linnet - All Rights Reserved
-REM # Written by Troels Schwarz-Linnet <tlinnet@gmail.com>, January 2018
+REM # Copyright (C) Voxmeter A/S - All Rights Reserved
+REM #
+REM # Voxmeter A/S
+REM # Borgergade 6, 4.
+REM # 1300 Copenhagen K
+REM # Denmark
+REM #
+REM # Written by Troels Schwarz-Linnet <tsl@voxmeter.dk>, 2018
 REM # 
 REM # Unauthorized copying of this file, via any medium is strictly prohibited.
 REM #
 REM # Any use of this code is strictly unauthorized without the written consent
-REM # by the the author. This code is proprietary of the author.
+REM # by Voxmeter A/S. This code is proprietary of Voxmeter A/S.
 REM # 
 REM ################################################################################
 
