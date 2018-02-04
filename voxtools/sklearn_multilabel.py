@@ -21,6 +21,7 @@
 
 import shutil, datetime, os, os.path, sys
 from distutils.version import StrictVersion
+from operator import itemgetter 
 
 from openpyxl import load_workbook
 from openpyxl.utils import coordinate_from_string, column_index_from_string, get_column_letter
@@ -41,6 +42,7 @@ from sklearn.svm import LinearSVC
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.metrics import precision_score
 
 class text:
     def __init__(self, excel_src=None, excel_dst=None):
@@ -77,16 +79,164 @@ class text:
         # Now classify all sentences
         self.do_classify_sentences()
 
+        # Now write to worksheet
+        self.write_results()
+
+        # Save Workbook
+        self.wb.save(self.excel_dst)
+
+
+    def write_results(self):
+        # Loop over sentences
+        sent_irows, sentences = self.sent_dat
+        for i, sentence in enumerate(sentences):
+            # Extract and unpack
+            sent_irow = sent_irows[i]
+            iRow, iCol = sent_irow
+            # Extract and unpack
+            sent_classification = self.sent_classifications[iRow-1]
+            classi_sent, classi_class = sent_classification
+            classi_class_str = ' '.join(map(str, classi_class))
+            # Sanity check
+            if sentence != classi_sent:
+                print("Oh no!!! Error! %s != %s" %(sentence, classi_sent) )
+                continue
+
+            # Get the cell
+            cCell = self.ws['%s%i'%(self.index_class_L, iRow+1)]
+            # Store the classification
+            cCell.value = classi_class_str
+
+        # Loop over train
+        train_irows, train_sentences = self.train_dat
+        correct_train = []
+        for i, sentence_pair in enumerate(train_sentences):
+            sentence, classi_train = sentence_pair
+            classi_train_set = self.create_set_from_str(classi_train)
+            classi_train_cat = self.create_cat_from_str(classi_train)
+            # Extract and unpack
+            train_irow = train_irows[i]
+            iRow, iCol_1, iCol_2 = train_irow
+            # Extract and unpack
+            sent_classification = self.sent_classifications[iRow-1]
+            classi_sent, classi_class = sent_classification
+            classi_class_str = ' '.join(map(str, classi_class))
+            classi_class_str_set = self.create_set_from_str(classi_class_str)
+            classi_class_cat = self.create_cat_from_str(classi_class_str)
+            # Sanity check
+            if sentence != classi_sent:
+                print("Oh no!!! Error! %s != %s" %(sentence, classi_sent) )
+                continue
+            # Check
+            if classi_train_set == classi_class_str_set:
+                equal = 1
+            else:
+                equal = 0
+            # Add
+            correct_train.append(equal)
+            # Get the cell
+            cCell = self.ws['%s%i'%(self.index_correct_train_L, iRow+1)]
+            # Store the classification
+            cCell.value = equal
+            # Store the strings
+            cCell = self.ws['G%i'%(iRow+1)]
+            cCell.value = classi_train_cat
+            cCell = self.ws['H%i'%(iRow+1)]
+            cCell.value = classi_class_cat
+
+
+        # Write results
+        self.ws['J1'].value = "correct_train"
+        self.ws['J2'].value = "sum"
+        self.ws['K2'].value = sum(correct_train)
+        self.ws['J3'].value = "total"
+        self.ws['K3'].value = len(correct_train)
+        self.ws['J4'].value = "pct"
+        self.ws['K4'].value = float("%0.2f"%( sum(correct_train)/len(correct_train) ))
+
+        # Loop over test
+        correct_test = []
+        if self.has_test:
+            test_irows, test_sentences = self.test_dat
+            for i, sentence_pair in enumerate(test_sentences):
+                sentence, classi_test = sentence_pair
+                classi_test_set = self.create_set_from_str(classi_test)
+                classi_test_cat = self.create_cat_from_str(classi_test)
+                # Extract and unpack
+                test_irow = test_irows[i]
+                iRow, iCol_1, iCol_2 = test_irow
+                # Extract and unpack
+                sent_classification = self.sent_classifications[iRow-1]
+                classi_sent, classi_class = sent_classification
+                classi_class_str = ' '.join(map(str, classi_class))
+                classi_class_str_set = self.create_set_from_str(classi_class_str)
+                classi_class_cat = self.create_cat_from_str(classi_class_str)
+
+                # Sanity check
+                if sentence != classi_sent:
+                    print("Oh no!!! Error! %s != %s" %(sentence, classi_sent) )
+                    continue
+                # Check
+                if classi_test_set == classi_class_str_set:
+                    equal = 1
+                else:
+                    equal = 0
+                # Add
+                correct_test.append(equal)
+                # Get the cell
+                cCell = self.ws['%s%i'%(self.index_correct_test_L, iRow+1)]
+                # Store the classification
+                cCell.value = equal        
+                # Store the strings
+                cCell = self.ws['I%i'%(iRow+1)]
+                cCell.value = classi_test_cat
+                cCell = self.ws['H%i'%(iRow+1)]
+                cCell.value = classi_class_cat
+
+
+            # Write results
+            self.ws['J7'].value = "correct_test"
+            self.ws['J8'].value = "sum"
+            self.ws['K8'].value = sum(correct_test)
+            self.ws['J9'].value = "total"
+            self.ws['K9'].value = len(correct_test)
+            self.ws['J10'].value = "pct"
+            self.ws['K10'].value = float("%0.2f"%( sum(correct_test)/len(correct_test) ))
+                    
+    def create_cat_from_str(self, in_str):
+        if isinstance(in_str, int):
+            cur_index = [in_str]
+        else:
+            cur_index = [*map(int, in_str.split(" "))]
+
+        cur_categories = itemgetter(*cur_index)(self.categories[1])
+        if isinstance(cur_categories, tuple):
+            cur_categories_str = ','.join(map(str, cur_categories))
+        else:
+            cur_categories_str = cur_categories
+        return cur_categories_str
+
+    def create_set_from_str(self, in_str):
+        if isinstance(in_str, int):
+            cur_set = set([in_str])
+        else:
+            list_class = [*map(int, in_str.split(" "))]
+            cur_set = set(list_class)
+        return cur_set
+
     def do_classify_sentences(self):
         # Get the X, the sen
         X_sentences = self.sent_dat[1]
 
         # Predict
         predict = self.classifier.predict(X_sentences)
-        self.sent_classifications = self.mlb.inverse_transform(predict)
-        # Zip and print
-        #for item, labels in zip(X_sentences, self.sent_classifications):
-        #    print("%s => %s "%(item, labels), len(labels))
+        predict_inv = self.mlb.inverse_transform(predict)
+
+        # Loop over all sentences
+        self.sent_classifications = []
+        for sent, classification in zip(X_sentences, predict_inv):
+            # Store
+            self.sent_classifications.append((sent, classification))
 
     def do_train(self):
         # Get the X and y of problem
@@ -105,7 +255,7 @@ class text:
         # Define methods to classifier
         self.classifier = Pipeline([
             ('vectorizer', CountVectorizer()),
-            #('vectorizer', CountVectorizer(ngram_range=(1, 2))),
+            #('vectorizer', CountVectorizer(ngram_range=(self.vectorizer_min , self.vectorizer_max))),
             ('tfidf', TfidfTransformer()),
             ('clf', OneVsRestClassifier(LinearSVC()))])
 
@@ -114,11 +264,16 @@ class text:
 
         # Predict on test
         if self.has_test:
-            predict_test = self.classifier.predict(X_test)
-            predict_test_labels = self.mlb.inverse_transform(predict_test)
-            # Zip and print
-            #for item, labels in zip(X_test, predict_test_labels):
-            #    print("%s => %s "%(item, labels))
+            # Get the right format
+            y_true = self.mlb.fit_transform(y_test)
+            y_pred = self.classifier.predict(X_test)
+            # Get labels
+            y_pred_labels = self.mlb.inverse_transform(y_pred)
+            # 'macro': Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account.
+            # 'micro': Calculate metrics globally by counting the total true positives, false negatives and false positives.
+            self.accuracy_test = precision_score(y_true, y_pred, average='micro')
+            
+            print("After training %i sentences, the accuracy on %i test sentences is %0.2f"% (len(train), len(test), self.accuracy_test) )
 
     def get_X_y(self, categories):
         # Convert
@@ -144,6 +299,7 @@ class text:
 
     def read_target_categories(self):
         # Use the first sheet
+        current_ws = self.ws
         ws_name = "target_categories"
         self.ws = self.wb[ws_name]            
 
@@ -192,6 +348,8 @@ class text:
         self.vectorizer_min = int(self.ws['%s%i'%(self.index_vectorizer_min_L, 2)].value)
         self.vectorizer_max = int(self.ws['%s%i'%(self.index_vectorizer_max_L, 2)].value)
 
+        # Go back
+        self.ws = current_ws
 
     def read_data(self):
         # Use the first sheet
