@@ -143,7 +143,7 @@ class MainTableWidget(QWidget):
         widgetLayout_drop_box = QVBoxLayout()
         # Create drop_box
         drop_box_lbl = QLabel('Drag & Drop files to the box below:')
-        self.drop_box =  TestListBox()
+        self.drop_box = TestListBox()
         # Add widget
         widgetLayout_drop_box.addWidget(drop_box_lbl)
         widgetLayout_drop_box.addWidget(self.drop_box)
@@ -160,6 +160,9 @@ class MainTableWidget(QWidget):
         # Set text
         self.set_info_in_textbox(combo_texts[self.method_index])
 
+        # Set method to drop_box
+        self.drop_box.method_index = i
+        
         #print("Items in the list are :")
         #for j in range(self.method_combo.count()):
         #    print(j, self.method_combo.itemText(j))
@@ -182,6 +185,8 @@ class TestListBox(QListWidget):
                     background-repeat: no-repeat;
                     }"""%gui_logo_small)
 
+        # The initial method index
+        self.method_index = 0
 
     # http://pyqt.sourceforge.net/Docs/PyQt5/api/QtGui/qdragenterevent.html
     def dragEnterEvent(self, event):
@@ -203,6 +208,8 @@ class TestListBox(QListWidget):
         if event.mimeData().hasUrls:
             event.setDropAction(Qt.CopyAction)
             event.accept()
+
+            print(self.method_index)
 
             # Loop over urls passed
             for url in event.mimeData().urls():
