@@ -15,7 +15,7 @@
 # 
 ################################################################################
 
-import sys, os.path
+import sys, os, os.path
 
 from PyQt5.QtWidgets import (QApplication,
                             QComboBox,
@@ -28,22 +28,36 @@ from PyQt5.QtWidgets import (QApplication,
                             QWidget,
                             )
 from PyQt5.QtCore import Qt, QTimer, QSize
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPixmap
+
+# Import openpyxl for testing
+from openpyxl import load_workbook
 
 # Import voxtools excel
-from voxtools import excel
-#DEBUG = True
-DEBUG = False
+from voxtools import excel, textblob_classifying, sklearn_multilabel
 
 # Get the gui directory
 gui_dir = os.path.dirname(__file__)
-gui_logo = os.path.join(gui_dir, 'icons', 'gui_logo.png').replace('\\', '/')
-gui_logo_small = os.path.join(gui_dir, 'icons', 'gui_logo_small.png').replace('\\', '/')
-WindowIcon = os.path.join(gui_dir, 'icons', 'WindowIcon_winICO.ico').replace('\\', '/')
+gui_logo = os.path.join(gui_dir, 'icons', 'gui_logo.png')
+gui_logo_small = os.path.join(gui_dir, 'icons', 'gui_logo_small.png')
+if os.name == 'nt': 
+    WindowIcon = os.path.join(gui_dir, 'icons', 'WindowIcon_winICO.ico')
+else: 
+    #WindowIcon = os.path.join(gui_dir, 'icons', 'WindowIcon.svg')
+    WindowIcon = os.path.join(gui_dir, 'icons', 'WindowIcon.png')
+shared_data_dir = os.path.abspath(os.path.join(gui_dir, '..', 'test_suite', 'shared_data'))
+
+def get_path(path):
+    if os.name == 'nt': 
+        path = path.replace('\\', '/')
+    return path
 
 # Define the texts for the combo
+combo_methods = ['Prettify Tabulation report',
+                        'Single label text classification',
+                        'Multi label text classification']
 combo_00 = \
-r"""Prettify Tabulation report
+"""Prettify Tabulation report
 
 After a tabulation job, copy the output
 from the browser into an Excel document.
@@ -52,28 +66,45 @@ Just store the whole output in 1 sheet.
 Save, and then drag the Excel file here.
 
 Example:
-P:\Voxmeter_python_tools\voxtools\voxtools\test_suite\shared_data\wb05.xlsx
-"""
+%s
+"""%( get_path( os.path.abspath(os.path.join(shared_data_dir, 'wb05.xlsx')) ) )
 
 combo_01 = \
-r"""Single label text classification
+"""Single label text classification
 
 Example:
-P:\Voxmeter_python_tools\voxtools\voxtools\test_suite\shared_data\kodning01.xlsx
+%s
 
 Make a similar file, and then drag the Excel file here.
-"""
+"""%( get_path( os.path.abspath(os.path.join(shared_data_dir, 'kodning01.xlsx')) ) )
 
 combo_02 = \
-r"""Multi label text classification
+"""Multi label text classification
 
 Example:
-P:\Voxmeter_python_tools\voxtools\voxtools\test_suite\shared_data\multikodning01.xlsx
+%s
 
 Make a similar file, and then drag the Excel file here.
-"""
+"""%( get_path( os.path.abspath(os.path.join(shared_data_dir, 'multikodning01.xlsx')) ) )
 
 combo_texts = [combo_00, combo_01, combo_02]
+
+def get_icon(icon_path, resample=False):
+    """Return image inside a QIcon object
+    default: default image name or icon
+    resample: if True, manually resample icon pixmaps for usual sizes
+    (16, 24, 32, 48, 96, 128, 256). This is recommended for QMainWindow icons 
+    created from SVG images on non-Windows platforms due to a Qt bug (see 
+    http://code.google.com/p/spyderlib/issues/detail?id=1314)."""
+    icon = QIcon( icon_path )
+
+    if resample:
+        icon0 = QIcon()
+        for size in (16, 24, 32, 48, 96, 128, 256, 512):
+            icon0.addPixmap(icon.pixmap(size, size))
+        return icon0 
+    else:
+        return icon
 
 class MainTableWidget(QWidget):
 
@@ -83,7 +114,14 @@ class MainTableWidget(QWidget):
         # Title
         self.setWindowTitle('Make Excel report')
         # Icon for taskbar
-        self.setWindowIcon(QIcon(WindowIcon))
+        if os.name == 'nt':
+            self.setWindowIcon(QIcon( get_path(WindowIcon) ))
+        else:
+            resample = os.name != 'nt'
+            icon = get_icon( get_path(WindowIcon), resample=resample)
+            #print(dir(icon))
+            #print(icon.availableSizes())
+            self.setWindowIcon( icon )
 
         # Size and position
         w = 350; h=800
@@ -97,12 +135,10 @@ class MainTableWidget(QWidget):
         widgetLayout_methods = QHBoxLayout()
         # Make label and combo widget
         methods_lbl = QLabel('Chose method:')
-        methods = ['Prettify Tabulation report',
-                        'Single label text classification',
-                        'Multi label text classification']
+
         # Create and fill the combo box to choose the method
         self.method_combo = QComboBox()
-        self.method_combo.addItems(methods)
+        self.method_combo.addItems(combo_methods)
         # Add connect
         self.method_index = 0
         self.method_combo.currentIndexChanged.connect(self.method_change)
@@ -183,7 +219,7 @@ class TestListBox(QListWidget):
                     background-image: url(%s);
                     background-position: center;
                     background-repeat: no-repeat;
-                    }"""%gui_logo_small)
+                    }"""%get_path(gui_logo_small))
 
         # The initial method index
         self.method_index = 0
@@ -208,58 +244,122 @@ class TestListBox(QListWidget):
         if event.mimeData().hasUrls:
             event.setDropAction(Qt.CopyAction)
             event.accept()
+            # Get the urls
+            all_urls = event.mimeData().urls()
 
-            print(self.method_index)
-
-            # Loop over urls passed
-            for url in event.mimeData().urls():
-                link_str = str(url.toLocalFile())
-                # Get filename_src
-                filename_src, fileext = os.path.splitext(link_str)
-                # If not Excel
-                if fileext != '.xlsx':
-                    print("Not Excel file! Skipping file: %s" % link_str)
-                    continue
-                # If Excel
-                # Instantiate the Excel class
-                if not DEBUG:
-                    if "kodning" in link_str.lower():
-                        from voxtools import textblob_classifying
-                        tcl = textblob_classifying.text(excel_src=link_str)
-                        # Run it
-                        tcl.run_all()
-
-                    else:
-                        exl = excel.excel(excel_src=link_str)
-                        # Run it
-                        exl.run_all()
+            # Prettify Tabulation report
+            success = False
+            if self.method_index == 0:
+                success = self.execute_excel_urls(all_urls=all_urls, method_index=self.method_index)
+            # Single label text classification
+            elif self.method_index == 1:
+                success = self.execute_excel_urls(all_urls=all_urls, method_index=self.method_index)
+            # Multi label text classification
+            elif self.method_index == 2:
+                success = self.execute_excel_urls(all_urls=all_urls, method_index=self.method_index)
 
             # Show dialog
-            self.ok_dialog(timeout=3, text="All files has been converted!")
+            if success:
+                self.ok_dialog(timeout=3, text="All files has been converted!")
 
         else:
             event.ignore()
 
+    def execute_excel_urls(self, all_urls=[], method_index=0):
+        # Loop over urls passed
+        success = False
+        for url in all_urls:
+            # Possible convert
+            if str(type(url)) == "<class 'PyQt5.QtCore.QUrl'>":
+                link_str = str(url.toLocalFile())
+            else:
+                link_str = url
+            # Get filename_src
+            filename_src, fileext = os.path.splitext(link_str)
+            # If not Excel
+            if fileext != '.xlsx':
+                print("Not Excel file! Skipping file: %s" % link_str)
+                self.showdialog(Text="Not an Excel file", 
+                                InformativeText="Please provide an Excel file for method: '%s'"%combo_methods[method_index],
+                                DetailedText="File: %s"%link_str)
+                continue
+
+            # If Excel
+            # Try to autodetect the mode
+            wb = load_workbook(link_str)
+            ws = wb.active
+            ws_A1 = ws['A1']
+
+            # Detect if 'Multi label text classification'
+            if 'target_categories' in wb.sheetnames:
+                method_index_detect = 2
+            # Detect if 'Single label text classification'
+            elif ws_A1.value == 'sentences': 
+                method_index_detect = 1
+            # Else expect 'Prettify Tabulation report'
+            else:
+                method_index_detect = 0
+
+            # Now test
+            if method_index != method_index_detect:
+                self.showdialog(Text="Mismatch in method chosen and detected file", 
+                                InformativeText="Selected method: '%s' \n\nDetected method: '%s' " % (combo_methods[method_index], combo_methods[method_index_detect]) ,
+                                DetailedText="File: %s"%link_str)
+                continue
+
+            # 'Prettify Tabulation report'
+            if method_index == 0:
+                # Instantiate the Excel class and run it
+                exl = excel.excel(excel_src=link_str)
+                exl.run_all()
+
+            # 'Single label text classification'
+            elif method_index == 1:
+                # Instantiate the Textblob class and run it
+                tcl = textblob_classifying.text(excel_src=link_str)
+                tcl.run_all()
+
+            # 'Multi label text classification'
+            elif method_index == 2:
+                # Instantiate the Textblob class and run it
+                tcl =  sklearn_multilabel.text(excel_src=link_str)
+                tcl.run_all()
+
+            # Update success
+            success = True
+
+        return success
+    
     def ok_dialog(self, timeout=3, text=None):
         messagebox = TimerMessageBox(timeout=timeout, text=text, parent=self)
         messagebox.exec_()
 
-    def showdialog(self):
+    def showdialog(self, Text="This is a message box", InformativeText="This is additional information", DetailedText=None):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Information)
 
-        msg.setText("This is a message box")
-        msg.setInformativeText("This is additional information")
-        msg.setWindowTitle("MessageBox demo")
-        msg.setDetailedText("The details are as follows:")
-        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        # Set Title
+        msg.setWindowTitle("Message")
+
+        # Set text
+        msg.setText(Text)
+        msg.setInformativeText(InformativeText)
+
+        # Set additional info
+        if DetailedText != None:
+            msg.setDetailedText(DetailedText)
+
+        # Set button and action
+        #msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        msg.setStandardButtons(QMessageBox.Ok)
         msg.buttonClicked.connect(self.msgbtn)
 
         retval = msg.exec_()
-        print("value of pressed message box button:", retval)
+        #print("value of pressed message box button:", retval)
 
     def msgbtn(self,i):
-        print("Button pressed is:",i.text())
+        pass
+        #print("Button pressed is:",i.text())
 
 class TimerMessageBox(QMessageBox):
     def __init__(self, timeout=3, text=None, parent=None):
