@@ -115,6 +115,9 @@ Run single tests
     python -m voxtools.test_suite.sklearn_test
     python -m voxtools.test_suite.multikodning01_test
 
+    # With ascii
+    python -m voxtools.test_suite.ascii_test
+
 
 Run all tests
 
