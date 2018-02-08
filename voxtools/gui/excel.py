@@ -34,7 +34,7 @@ from PyQt5.QtGui import QIcon, QPixmap
 from openpyxl import load_workbook
 
 # Import voxtools excel
-from voxtools import excel, textblob_classifying, sklearn_multilabel
+from voxtools import ascii_mod, excel, textblob_classifying, sklearn_multilabel
 
 # Get the gui directory
 gui_dir = os.path.dirname(__file__)
@@ -55,7 +55,8 @@ def get_path(path):
 # Define the texts for the combo
 combo_methods = ['Prettify Tabulation report',
                         'Single label text classification',
-                        'Multi label text classification']
+                        'Multi label text classification',
+                        'Ascii conversion']
 combo_00 = \
 """Prettify Tabulation report
 
@@ -87,7 +88,24 @@ Example:
 Make a similar file, and then drag the Excel file here.
 """%( get_path( os.path.abspath(os.path.join(shared_data_dir, 'multikodning01.xlsx')) ) )
 
-combo_texts = [combo_00, combo_01, combo_02]
+combo_03 = \
+"""Ascii
+
+First drag the .txt file the questions into the questionnary.
+That will make a .json file, with the key 'index'. This is the mapping
+from character index to column in Excel.
+
+Then drag the .json file together with .asc file.
+This will create the Excel file.
+
+Example files:
+%s
+
+%s
+"""%( get_path( os.path.abspath(os.path.join(shared_data_dir, 'ascii_def.txt')) ),
+        get_path( os.path.abspath(os.path.join(shared_data_dir, 'ascii_res.asc')) ) )
+
+combo_texts = [combo_00, combo_01, combo_02, combo_03]
 
 def get_icon(icon_path, resample=False):
     """Return image inside a QIcon object
@@ -154,8 +172,12 @@ class MainTableWidget(QWidget):
         widgetLayout_info_lbl = QHBoxLayout()
         # The label for the info widget
         info_lbl = QLabel('Info:')
+        copy_lbl = QLabel('(C) Voxmeter A/S\nTroels Schwarz-Linnet')
+        copy_lbl.setAlignment(Qt.AlignRight | Qt.AlignTop)
         # Add widgets to info
         widgetLayout_info_lbl.addWidget(info_lbl)
+        widgetLayout_info_lbl.addStretch()
+        widgetLayout_info_lbl.addWidget(copy_lbl)
         # Add to vertical
         widgetLayout.addLayout(widgetLayout_info_lbl)
         
@@ -257,6 +279,10 @@ class TestListBox(QListWidget):
             # Multi label text classification
             elif self.method_index == 2:
                 success = self.execute_excel_urls(all_urls=all_urls, method_index=self.method_index)
+            # Ascii conversion
+            elif self.method_index == 3:
+                success = self.execute_ascii_urls(all_urls=all_urls, method_index=self.method_index)
+
 
             # Show dialog
             if success:
@@ -264,6 +290,49 @@ class TestListBox(QListWidget):
 
         else:
             event.ignore()
+
+    def execute_ascii_urls(self, all_urls=[], method_index=0):
+        # Loop over urls passed
+        success = False
+        # Collect file extions
+        files = []
+        file_names = []
+        file_extensions = []
+        
+        for url in all_urls:
+            # Possible convert
+            if str(type(url)) == "<class 'PyQt5.QtCore.QUrl'>":
+                link_str = str(url.toLocalFile())
+            else:
+                link_str = url
+            # Get filename_src
+            files.append(link_str)
+            filename_src, fileext = os.path.splitext(link_str)
+            # Store
+            file_names.append(filename_src)
+            file_extensions.append(fileext)
+
+        # If making json
+        if '.txt' in file_extensions and len(file_extensions) == 1:
+            print("Creating ascii map file")
+            # Instantiate the Excel class and run it
+            asc = ascii_mod.create_ascii_input(ascii_f=files[0])
+            asc.run_all()
+            success = True
+
+        elif '.asc' in file_extensions and '.json' in file_extensions and len(file_extensions) == 2:
+            print("Doing Ascii Excel")
+            index_json = file_extensions.index('.json')
+            index_asc = file_extensions.index('.asc')
+            exl = ascii_mod.create_excel_from_ascii(ascii_json=files[index_json], ascii_inp=files[index_asc])
+            success = True
+
+        else:
+            print("Can't convert!: Number of files is %i, with extensions %s" % (len(file_extensions), file_extensions))
+            self.showdialog(Text="Can't convert!: Number of files is %i, with extensions %s" % (len(file_extensions), file_extensions), 
+                            InformativeText="For method: '%s'\n\n* Either provide 1 file with extension .txt\n*Or provide 2 files with extensions .json+.asc"%(combo_methods[method_index]),
+                            DetailedText="Files: %s"%files)
+        return success
 
     def execute_excel_urls(self, all_urls=[], method_index=0):
         # Loop over urls passed
