@@ -27,9 +27,11 @@ class Test_excel(unittest.TestCase):
 
         # Get the folder with shared_data
         cur_dir = os.path.dirname(__file__)
-        shared_data_dir = os.path.join(cur_dir, 'shared_data')
+        self.shared_data_dir = os.path.join(cur_dir, 'shared_data')
         # Get the filepath
-        self.ascii_f = os.path.join(shared_data_dir, 'ascii_def.txt')
+        self.ascii_f = os.path.join(self.shared_data_dir, 'ascii_def.txt')
+        # Get the filepath
+        self.ascii_inp = os.path.join(self.shared_data_dir, 'ascii_res.asc')
 
     def test_class(self):
         # Create file obj
@@ -38,22 +40,37 @@ class Test_excel(unittest.TestCase):
         file_obj.close()
 
         # Instantiate the class
-        self.asc = ascii_mod.create_ascii_input(ascii_f=self.ascii_f, ascii_f_dst=self.ascii_f_dst)
-        #self.asc = ascii_mod.create_ascii_input(ascii_f=self.ascii_f)
+        self.temp_stat = True
+        if self.temp_stat:
+            self.asc = ascii_mod.create_ascii_input(ascii_f=self.ascii_f, ascii_f_dst=self.ascii_f_dst)
+        else:
+            self.asc = ascii_mod.create_ascii_input(ascii_f=self.ascii_f)
 
         # Run all in ascii
         self.asc.run_all()
 
-    def tearDown(self):
-        # Delete temporary file
-        ascii_f = self.ascii_f_dst+"_"+self.cur_time
-        print("Deleting : %s"%ascii_f)
-        os.remove(ascii_f)
+        # Define json name
+        if self.temp_stat:
+            self.ascii_json = self.ascii_f_dst+"_"+self.cur_time+".json"
+            self.ascii_excel = os.path.join(self.shared_data_dir, 'ascii_res.xlsx')
+        else:
+            self.ascii_json = os.path.join(self.shared_data_dir, 'ascii_def'+"_"+self.cur_time+".json")
 
-        # Delete temporary file
-        ascii_f = self.ascii_f_dst+"_"+self.cur_time
-        print("Deleting : %s"%ascii_f)
-        os.remove(ascii_f)
+        # Instantiate json read
+        self.exl = ascii_mod.create_excel_from_ascii(ascii_json=self.ascii_json, ascii_inp=self.ascii_inp)
+
+
+    def tearDown(self):
+        if self.temp_stat:
+            # Delete temporary file
+            ascii_f = self.ascii_f_dst+"_"+self.cur_time
+            print("Deleting : %s"%ascii_f)
+            os.remove(ascii_f)
+
+            # Delete temporary file
+            print("Deleting : %s"%self.ascii_json)
+            os.remove(self.ascii_json)
+            os.remove(self.ascii_excel)
 
 if __name__ == '__main__':
     unittest.main()

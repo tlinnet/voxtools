@@ -18,6 +18,7 @@ import shutil, datetime, copy, os, os.path, sys
 from distutils.version import StrictVersion
 import io, json
 
+from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 
 # Check version
@@ -27,6 +28,80 @@ if test_version:
     print("You need to have openpyxl version 2.5.0. You have %s"%__version__)
     sys.exit()
 
+
+class create_excel_from_ascii:
+    def __init__(self, ascii_json=None, ascii_inp=None):
+        # Store
+        self.ascii_json = ascii_json
+        self.ascii_inp = ascii_inp
+
+        # Read data
+        self.load_from_json()
+
+        # Create excel
+        self.create_excel()
+
+        # Read the data
+        self.read_lines()
+
+        # Assign data
+        self.assign_data()
+
+        self.save_excel()
+
+    def save_excel(self):
+        filename_src, fileext = os.path.splitext(self.ascii_inp)
+        self.excel_dst = filename_src + ".xlsx"
+        # Save
+        print("Saving to Excel: %s"%self.excel_dst)
+        self.wb.save(self.excel_dst)
+
+    def assign_data(self):
+        # Assign data
+        # Loop over lines
+        for i, line in enumerate(self.lines):
+            # Loop over characters
+            for j, char in enumerate(line):
+                if char in [' ', '\n']:
+                    continue
+
+                # Extract
+                question, q_col_let = self.q_index[str(j)]
+                # Get the cell, add 1 for header
+                cCell = self.ws['%s%i'%(q_col_let, i+2)]
+                val = "%s:%s"%(j+1,char)
+                if cCell.value == None:
+                    cCell.value = val
+                else:
+                    cCell.value = str(cCell.value) + "," + val
+
+    def read_lines(self):
+        # Open file
+        with open(self.ascii_inp) as f:
+            self.lines = f.readlines()
+
+    def create_excel(self):
+        # Create Workbook
+        self.wb = Workbook()
+        # Get sheet
+        self.ws = self.wb.active
+
+        # Loop over dic
+        for key in self.q_index:
+            question, q_col_let = self.q_index[key]
+            cCell = self.ws['%s1'%(q_col_let)]
+            cCell.value = question
+
+    def load_from_json(self):
+        # Save to json
+        #with io.open(self.json_dst, 'w', encoding='utf-8') as f:
+        with io.open(self.ascii_json, 'r') as f:
+            #print("Reading from %s"%self.ascii_json)
+            self.q_dic = json.load(f)
+
+        # Get the questions
+        self.questions = self.q_dic['questions']
+        self.q_index = self.q_dic['index']
 
 class create_ascii_input:
     def __init__(self, ascii_f=None, ascii_f_dst=None):
@@ -68,6 +143,19 @@ class create_ascii_input:
         # Save
         self.save_to_json()
 
+    def save_to_json(self):
+        # Save to json
+        #with io.open(self.json_dst, 'w', encoding='utf-8') as f:
+        with io.open(self.json_dst, 'w') as f:
+            print("Saved to %s"%self.json_dst)
+            #f.write(json.dumps(data, ensure_ascii=False))
+            f.write(json.dumps(self.q_dic_clean, indent=2))
+
+    def clean_dic(self):
+        self.q_dic_clean = copy.copy(self.q_dic)
+        for i, q in enumerate(self.questions):
+            self.q_dic_clean[q].pop('section', None)
+
     def make_index(self):
         # Loop over positions
         self.q_dic['index'] = {}
@@ -82,6 +170,7 @@ class create_ascii_input:
                 # Extract column letter
                 q_col_let = q_data['col_let']
                 q_col_text = ""
+
             # If multi
             elif q_type == "MQ":
                 q_group_i = q_data['pos_group'][pos]
@@ -90,6 +179,7 @@ class create_ascii_input:
 
             # Now run over the range
             pos_rep = pos.replace("(","").replace(")","")
+
             if "-" in pos_rep:
                 pos_l, pos_h = pos_rep.split("-")
                 pos_l = int(pos_l)
@@ -100,29 +190,17 @@ class create_ascii_input:
 
             # Loop over range
             for j in j_range:
-                self.q_dic['index'][j-1] = (question, q_col_let)
+                self.q_dic['index'][str(j-1)] = (question, q_col_let)
 
-
-    def save_to_json(self):
-        # Save to json
-        #with io.open(self.json_dst, 'w', encoding='utf-8') as f:
-        with io.open(self.json_dst, 'w') as f:
-            print("Saved to %s"%self.json_dst)
-            #f.write(json.dumps(data, ensure_ascii=False))
-            f.write(json.dumps(self.q_dic_clean, indent=2))
-
-    def clean_dic(self):
-        self.q_dic_clean = copy.copy(self.q_dic)
-        for i, q in enumerate(self.questions):
-            self.q_dic_clean[q].pop('section', None)
+        #print(self.q_dic['index'])
 
     def make_excel_header(self):
         # Loop over questions
         # Counter for letter
         if 'serial' in self.q_dic:
-            col_i = 1
-        else:
             col_i = 2
+        else:
+            col_i = 1
 
         for i, q in enumerate(self.questions):
             # Get the data
@@ -199,6 +277,7 @@ class create_ascii_input:
                         cur_pos = "(%s)"%(line.split("(")[1].split(")")[0])
                         self.q_dic[q]['positions'].append(cur_pos)
                         self.q_dic[q]['pos']
+                        self.q_dic['pos'][cur_pos] = q
 
             elif q_type == "MQ":
                 pos_c = 0
@@ -345,13 +424,13 @@ class create_ascii_input:
         # Define filenames
         filename_src, fileext = os.path.splitext(self.ascii_f)
         self.filename_dst = filename_src + "_" +  self.cur_time+fileext
-        self.json_dst = self.filename_dst+".json"
+        self.json_dst = filename_src + "_" +  self.cur_time+".json"
 
         # New destination
         if self.ascii_f_dst != None:
             ascii_src, asciiext = os.path.splitext(self.ascii_f_dst)
             self.filename_dst = ascii_src + "_" +  self.cur_time+asciiext
-            self.json_dst =self.filename_dst+".json"
+            self.json_dst = ascii_src + "_" +  self.cur_time+".json"
 
         # Copy
         print(self.filename_dst)
