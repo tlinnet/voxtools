@@ -100,7 +100,7 @@ class create_excel_from_ascii:
             self.q_dic = json.load(f)
 
         # Get the questions
-        self.questions = self.q_dic['questions']
+        #self.questions = self.q_dic['questions']
         self.q_index = self.q_dic['index']
 
 class create_ascii_input:
