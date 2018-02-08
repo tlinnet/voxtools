@@ -1,5 +1,5 @@
 ========
-voxtools 
+voxtools
 ========
 
 How to run the GUI
@@ -18,7 +18,7 @@ Developer install for local conda environment:
 
    # Create environment
    conda env create -f environment.yml
-   
+
    # Activate environment
    conda env list
    source activate voxtools
@@ -29,7 +29,7 @@ Or manual install in root environment:
 
    # Manually install package
    python setup.py install --force
-   
+
    #  Manually uninstall
    python setup.py install --record files.txt
    PACK=`dirname $(head -n 1 files.txt)`
@@ -116,7 +116,7 @@ Run single tests
     python -m voxtools.test_suite.multikodning01_test
 
     # With ascii
-    python -m voxtools.test_suite.ascii_test
+    python -m voxtools.test_suite.ascii_def_test
 
 
 Run all tests

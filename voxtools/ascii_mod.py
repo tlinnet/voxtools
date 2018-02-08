@@ -7,16 +7,18 @@
 # Denmark
 #
 # Written by Troels Schwarz-Linnet <tsl@voxmeter.dk>, 2018
-# 
+#
 # Unauthorized copying of this file, via any medium is strictly prohibited.
 #
 # Any use of this code is strictly unauthorized without the written consent
 # by Voxmeter A/S. This code is proprietary of Voxmeter A/S.
-# 
+#
 ################################################################################
-import datetime, copy, os, os.path, sys
+import shutil, datetime, copy, os, os.path, sys
 from distutils.version import StrictVersion
 import io, json
+
+from openpyxl.utils import get_column_letter
 
 # Check version
 from openpyxl import __version__
@@ -27,18 +29,18 @@ if test_version:
 
 
 class create_ascii_input:
-    def __init__(self, ascii_f=None):
-        # Store 
+    def __init__(self, ascii_f=None, ascii_f_dst=None):
+        # Store
         self.ascii_f = ascii_f
+        self.ascii_f_dst = ascii_f_dst
 
         # Make current time
         #self.cur_time = datetime.datetime.now().strftime("%Y-%m-%d-Week%W-H%H-M%M-S%S")
         self.cur_time = datetime.datetime.now().strftime("%Y-%m-%d-Week%W")
 
-        # Define filenames
-        self.filename_src, self.fileext = os.path.splitext(self.ascii_f)
-        self.filename_dst = self.filename_src + "_" +  self.cur_time
-        self.json_dst = self.filename_dst+".json"
+    def run_all(self):
+        # Copy file
+        self.copy_file()
 
         # Read lines
         self.read_lines()
@@ -55,6 +57,9 @@ class create_ascii_input:
         # Find pos
         self.find_pos()
 
+        # Make header
+        self.make_excel_header()
+
         # Make index
         self.make_index()
 
@@ -70,6 +75,18 @@ class create_ascii_input:
             question = self.q_dic['pos'][pos]
             # Get data
             q_data = self.q_dic[question]
+            q_type = q_data['type']
+
+            # If single
+            if q_type in ["SQ", "NR"]:
+                # Extract column letter
+                q_col_let = q_data['col_let']
+                q_col_text = ""
+            # If multi
+            elif q_type == "MQ":
+                q_group_i = q_data['pos_group'][pos]
+                q_col_let = q_data['col_let'][q_group_i]
+                q_col_text = ""
 
             # Now run over the range
             pos_rep = pos.replace("(","").replace(")","")
@@ -80,11 +97,11 @@ class create_ascii_input:
                 j_range = list(range(pos_l, pos_h+1))
             else:
                 j_range = [int(pos_rep)]
-            
+
             # Loop over range
             for j in j_range:
-                self.q_dic['index'][j-1] = question
-                
+                self.q_dic['index'][j-1] = (question, q_col_let)
+
 
     def save_to_json(self):
         # Save to json
@@ -98,6 +115,39 @@ class create_ascii_input:
         self.q_dic_clean = copy.copy(self.q_dic)
         for i, q in enumerate(self.questions):
             self.q_dic_clean[q].pop('section', None)
+
+    def make_excel_header(self):
+        # Loop over questions
+        # Counter for letter
+        if 'serial' in self.q_dic:
+            col_i = 1
+        else:
+            col_i = 2
+
+        for i, q in enumerate(self.questions):
+            # Get the data
+            q_data = self.q_dic[q]
+            q_type = q_data['type']
+
+            # If single
+            if q_type in ["SQ", "NR"]:
+                col_let = get_column_letter(col_i)
+                self.q_dic[q]['col_let'] = col_let
+                #print(q, col_let)
+                col_i += 1
+
+            # If multi
+            elif q_type == "MQ":
+                # There can be more letters
+                col_letters = []
+                q_groups = q_data['groups']
+                for j in range(q_groups):
+                    col_let = get_column_letter(col_i)
+                    col_letters.append(col_let)
+                    #print(q, col_let)
+                    col_i += 1
+
+                self.q_dic[q]['col_let'] = col_letters
 
     def find_pos(self):
         # Loop over questions
@@ -154,6 +204,7 @@ class create_ascii_input:
                 pos_c = 0
                 self.q_dic[q]['groups'] = pos_c
                 self.q_dic[q]["pos_%i"%pos_c] = {}
+                self.q_dic[q]["pos_group"] = {}
                 for j, line in enumerate(section):
                     number_left_p = line.count("(")
                     if number_left_p > 1:
@@ -172,7 +223,8 @@ class create_ascii_input:
                         # Zip together
                         for cur_pos, cur_pos_nr in zip(line_pos_f, line_nr_f):
                             #self.q_dic[q]["pos_%i"%pos_c][cur_pos] = {}
-                            self.q_dic[q]["pos_%i"%pos_c][cur_pos] = cur_pos_nr                            
+                            self.q_dic[q]["pos_%i"%pos_c][cur_pos] = cur_pos_nr
+                            self.q_dic[q]["pos_group"][cur_pos] = pos_c
                             self.q_dic[q]['pos'][cur_pos] = cur_pos_nr
                             self.q_dic[q]['positions'].append(cur_pos)
                             self.q_dic['pos'][cur_pos] = q
@@ -218,10 +270,11 @@ class create_ascii_input:
                     dic['serial']['type'] = "NR"
                     dic['serial']['pos'] = {}
                     dic['serial']['positions'] = [pos]
+                    dic['serial']['col_let'] = 'A'
 
                     break
 
-                # Break 
+                # Break
                 elif j == 0 and first_word not in ["ASK", "ASK:"]:
                     questions.append(first_word)
                     dic[first_word] = {}
@@ -232,7 +285,7 @@ class create_ascii_input:
 
                 elif first_word in ["ASK", "ASK:"]:
                     continue
-                
+
                 elif "|" not in first_word:
                     questions.append(first_word)
                     dic[first_word] = {}
@@ -251,7 +304,7 @@ class create_ascii_input:
         #print(questions)
         self.questions = questions
         self.q_dic = dic
-        # Update 
+        # Update
         self.q_dic['questions'] = questions
 
     def find_sections(self):
@@ -263,7 +316,7 @@ class create_ascii_input:
             # Dont look at empty lines
             if line in ['\n', '\r\n'] or len(line) == 0:
                 continue
-            
+
             # Start collection
             # If new section has arrived
             if "_____________________________________________" in line:
@@ -278,12 +331,28 @@ class create_ascii_input:
 
         # Append last section
         all_sections.append(section)
-            
+
         # Store sections
         self.sections = all_sections
 
     def read_lines(self):
         # Open file
-        with open(self.ascii_f) as f:
+        with open(self.filename_dst) as f:
             self.lines = f.readlines()
-        
+
+
+    def copy_file(self):
+        # Define filenames
+        filename_src, fileext = os.path.splitext(self.ascii_f)
+        self.filename_dst = filename_src + "_" +  self.cur_time+fileext
+        self.json_dst = self.filename_dst+".json"
+
+        # New destination
+        if self.ascii_f_dst != None:
+            ascii_src, asciiext = os.path.splitext(self.ascii_f_dst)
+            self.filename_dst = ascii_src + "_" +  self.cur_time+asciiext
+            self.json_dst =self.filename_dst+".json"
+
+        # Copy
+        print(self.filename_dst)
+        shutil.copy2(self.ascii_f, self.filename_dst)
