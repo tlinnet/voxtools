@@ -62,18 +62,25 @@ class create_excel_from_ascii:
         for i, line in enumerate(self.lines):
             # Loop over characters
             for j, char in enumerate(line):
-                if char in [' ', '\n']:
+                # Skip line ending
+                if char == '\n':
                     continue
+                # Make zero for empty
+                if char == ' ':
+                    char = "0"
 
                 # Extract
-                question, q_col_let = self.q_index[str(j)]
+                #print(j, char)
+                q_col_text, q_col_let = self.q_index[str(j)]
                 # Get the cell, add 1 for header
                 cCell = self.ws['%s%i'%(q_col_let, i+2)]
-                val = "%s:%s"%(j+1,char)
+                #val = "%s:%s"%(j+1,char)
+                val = char
                 if cCell.value == None:
                     cCell.value = val
                 else:
-                    cCell.value = str(cCell.value) + "," + val
+                    #cCell.value = str(cCell.value) + "," + val
+                    cCell.value = str(cCell.value) + val
 
     def read_lines(self):
         # Open file
@@ -88,9 +95,9 @@ class create_excel_from_ascii:
 
         # Loop over dic
         for key in self.q_index:
-            question, q_col_let = self.q_index[key]
+            q_col_text, q_col_let = self.q_index[key]
             cCell = self.ws['%s1'%(q_col_let)]
-            cCell.value = question
+            cCell.value = q_col_text
 
     def load_from_json(self):
         # Save to json
@@ -169,13 +176,14 @@ class create_ascii_input:
             if q_type in ["SQ", "NR"]:
                 # Extract column letter
                 q_col_let = q_data['col_let']
-                q_col_text = ""
+                q_col_text = question
 
             # If multi
             elif q_type == "MQ":
                 q_group_i = q_data['pos_group'][pos]
                 q_col_let = q_data['col_let'][q_group_i]
-                q_col_text = ""
+                q_col_text = question+"_%i"%(q_group_i)
+                # Re
 
             # Now run over the range
             pos_rep = pos.replace("(","").replace(")","")
@@ -190,7 +198,7 @@ class create_ascii_input:
 
             # Loop over range
             for j in j_range:
-                self.q_dic['index'][str(j-1)] = (question, q_col_let)
+                self.q_dic['index'][str(j-1)] = (q_col_text, q_col_let)
 
         #print(self.q_dic['index'])
 
@@ -285,8 +293,10 @@ class create_ascii_input:
                 self.q_dic[q]["pos_%i"%pos_c] = {}
                 self.q_dic[q]["pos_group"] = {}
                 for j, line in enumerate(section):
-                    number_left_p = line.count("(")
-                    if number_left_p > 1:
+                    #number_left_p = line.count("(")
+                    #if number_left_p > 1:
+                    test_multi = "| |" in line and "(" in line and line.count("|") == 3
+                    if test_multi:
                         # Get next line
                         line_n = section[j+1]
                         # Get the line positions
@@ -313,15 +323,17 @@ class create_ascii_input:
 
             #print(q, q_type, self.q_dic[q]['positions'])
 
-
     def find_type(self):
         # Loop over questions
         for i, q in enumerate(self.questions):
             section = self.q_dic[q]['section']
             q_type = "SQ"
             for j, line in enumerate(section):
-                number_left_p = line.count("(")
-                if number_left_p > 1:
+                #number_left_p = line.count("(")
+                #if number_left_p > 1:
+                #    q_type = "MQ"
+                test_multi = "| |" in line
+                if test_multi:
                     q_type = "MQ"
                 elif "|__|__|__|" in line:
                     q_type = "NR"
@@ -354,7 +366,7 @@ class create_ascii_input:
                     break
 
                 # Break
-                elif j == 0 and first_word not in ["ASK", "ASK:"]:
+                elif j == 0 and first_word not in ["ASK", "ASK:", "AND:"]:
                     questions.append(first_word)
                     dic[first_word] = {}
                     dic[first_word]['section_i'] = i
@@ -362,7 +374,7 @@ class create_ascii_input:
                     dic[first_word]['section'] = section
                     break
 
-                elif first_word in ["ASK", "ASK:"]:
+                elif first_word in ["ASK", "ASK:", "AND:"]:
                     continue
 
                 elif "|" not in first_word:
