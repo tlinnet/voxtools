@@ -35,6 +35,11 @@ SKIP_THESE = [
 ]
 Col_width_max = 177 # 100+50+20+5+2
 
+# Map number to danish month
+month_dic = {'1':'januar','2':'februar','3':'marts','4':'april','5':'maj','6':'juni',
+            '7':'juli','8':'august','9':'september','10':'oktober','11':'november','12':'december'}
+
+
 def calc_text_width(cCell):
     value = cCell.value
     if value is None:
@@ -105,6 +110,8 @@ class excel:
         # Make current time
         #self.cur_time = datetime.datetime.now().strftime("%Y-%m-%d-Week%W-H%H-M%M-S%S")
         self.cur_time = datetime.datetime.now().strftime("%Y-%m-%d-Week%W")
+        self.currentMonth = datetime.datetime.now().month
+        self.currentYear = datetime.datetime.now().year
 
 
     def run_all(self):
@@ -665,6 +672,19 @@ class excel:
             ws.page_margins.left=0.25; ws.page_margins.right=0.25;
             ws.page_margins.top=0.75; ws.page_margins.bottom=0.75;
             ws.page_margins.header=0.3; ws.page_margins.footer=0.3;
+
+            Header_center_text = "Voxmeter A/S"
+            Header_center_size = 20
+            Header_right_text = "Side &[Page] af &N"
+            ws.oddHeader.center.text = Header_center_text
+            ws.oddHeader.center.size = Header_center_size
+            ws.oddHeader.right.text = Header_right_text
+            ws.evenHeader.center.text = Header_center_text
+            ws.evenHeader.center.size = Header_center_size
+            ws.evenHeader.right.text = Header_right_text
+            Footer_center_text = "Udarbejdet af Voxmeter A/S %s %i"%(month_dic[str(self.currentMonth)], self.currentYear)
+            ws.oddFooter.center.text = Footer_center_text
+            ws.evenFooter.center.text = Footer_center_text
 
     def delete_empty_sheets(self):
         # Loop through worksheets
